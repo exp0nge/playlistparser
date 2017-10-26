@@ -32,16 +32,16 @@ def parse(data, trackObject, playlistObject):
             try:
                 value = item.childNodes[0].nodeValue
                 if key == "creator":
-                    t.Artist = value
+                    t.artist = value
                 if key == "title":
-                    t.Title = value
+                    t.title = value
                 if key == "location":
-                    t.File = value
+                    t.file = value
                 if key == "duration":
-                    t.Duration = int(value)
+                    t.duration = int(value)
                 if key == "album":
-                    t.Album = value
+                    t.album = value
                 playlist.append(t)
             except:
                 pass
-    return Playlist(Tracks=playlist, Encoding='utf-8')
+    return Playlist(tracks=playlist, encoding='utf-8')
