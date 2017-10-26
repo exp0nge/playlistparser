@@ -1,23 +1,25 @@
-''' Python Playlist Parser (plparser)
+""" Python Playlist Parser (plparser)
     Copyright (C) 2012  Hugo Caille
-    
+
     Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
     1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
     2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer
     in the documentation and/or other materials provided with the distribution.
     3. The name of the author may not be used to endorse or promote products derived from this software without specific prior written permission.
-    
+
     THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
     OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
     SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
     PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
     OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-    '''
+    """
 
 from xml.dom import minidom
 from random import randrange
+
 try:
     from chardet.universaldetector import UniversalDetector
+
     chardet = True
 except:
     chardet = False
@@ -34,14 +36,14 @@ class Track(object):
 
         self.Inverted = False
 
-    def defineArtist(self, Artist):
+    def define_artist(self, Artist):
         self.Artist = Artist
         if self.Inverted:
             self.Title = self.Name.split(' - ' + Artist)[0]
         else:
             self.Title = self.Name.split(Artist + ' - ')[1]
 
-    def nameParse(self, invert=False):
+    def name_parse(self, invert=False):
         if invert:
             self.Inverted = True
         invert = self.Inverted
@@ -77,7 +79,7 @@ class Track(object):
                 probcursor = probcursor + 1
             return results
 
-    def mustInvert(self, artist):
+    def must_invert(self, artist):
         if self.Name.lower().rfind(artist.lower()) > 0:
             self.Inverted = True
         else:
@@ -85,17 +87,17 @@ class Track(object):
         return self.Inverted
 
 
-class Playlist:
-    def __init__(self, Tracks=None, Encoding=None):
-        self.Tracks = Tracks
+class Playlist(object):
+    def __init__(self, tracks=None, encoding=None):
+        self.Tracks = tracks
         self.Inverted = False
-        self.Encoding = Encoding
+        self.Encoding = encoding
 
-    def nameParse(self, invert=False):
+    def name_parse(self, invert=False):
         for track in self.Tracks:
-            track.nameParse(invert)
+            track.name_parse(invert)
 
-    def mustInvert(self, artist=None):
+    def must_invert(self, artist=None):
         if artist == None:
             self.randTracks = list()
             for i in range(0, 3, 1):
@@ -104,14 +106,14 @@ class Playlist:
             return self.randTracks
         else:
             for track in self.randTracks:
-                if track.mustInvert(artist):
+                if track.must_invert(artist):
                     for track in self.Tracks:
                         track.Inverted = True
                     self.Inverted = True
                     return True
 
 
-def typeGuess(data):
+def guess_type(data):
     lines = data.split('\n')
     if '#EXTM3U' in lines[0]:
         try:
@@ -139,8 +141,8 @@ def typeGuess(data):
 
 
 def decode(filename, data):
+    encoding = 'utf-8'
     if '.m3u8' in filename:
-        encoding = 'utf-8'
         data = data.decode(encoding)
     elif '.m3u' in filename or '.pls' in filename:
         try:
@@ -153,7 +155,7 @@ def decode(filename, data):
                 u.close()
                 if u.result['confidence'] > 0.5:
                     try:
-                        encoding = result['encoding']
+                        encoding = u.result['encoding']
                         data = data.decode(encoding)
                     except:
                         encoding = 'ascii'
@@ -167,17 +169,17 @@ def decode(filename, data):
     return {'data': data, 'encoding': encoding}
 
 
-def parse(filename=None, filedata=None, trackObject=Track, playlistObject=Playlist, encoding=None):
-    if filedata != None:
-        file = filedata
-        if filename == None:
-            filename = typeGuess(filedata)
+def parse(filename=None, file_data=None, track_object=Track, playlist_object=Playlist, encoding=None):
+    if file_data is not None:
+        file = file_data
+        if filename is None:
+            filename = guess_type(file_data)
     else:
         f = open(filename, 'r')
         file = f.read()
         f.close()
 
-    if encoding == None:
+    if encoding is None:
         decoded = decode(filename, file)
         file = decoded['data']
         encoding = decoded['encoding']
@@ -191,21 +193,20 @@ def parse(filename=None, filedata=None, trackObject=Track, playlistObject=Playli
 
     if '.m3u' in filename or '.m3u8' in filename:
         import m3uparser
-        return m3uparser.parse(file, encoding, trackObject, playlistObject)
+        return m3uparser.parse(file, encoding, track_object, playlist_object)
     if '.pls' in filename:
         import plsparser
-        return plsparser.parse(file, encoding, trackObject, playlistObject)
+        return plsparser.parse(file, encoding, track_object, playlist_object)
     if '.xspf' in filename:
         import xspfparser
-        return xspfparser.parse(file, trackObject, playlistObject)
+        return xspfparser.parse(file, track_object, playlist_object)
     if '.xml' in filename:
         import xmlparser
-        return xmlparser.parse(file, trackObject, playlistObject)
+        return xmlparser.parse(file, track_object, playlist_object)
 
 
 if __name__ == '__main__':
-    from sys import argv
     f = open('test.m3u', 'r')
-    parsed = parse(filedata=f.read())
+    parsed = parse(file_data=f.read())
     print(parsed)
     f.close()
