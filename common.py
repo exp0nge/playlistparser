@@ -26,37 +26,37 @@ except:
 
 
 class Track(object):
-    def __init__(self, Artist=None, Title=None, Album=None, Name=None, Duration=None, File=None):
-        self.Artist = Artist
-        self.Title = Title
-        self.Album = Album
-        self.Name = Name
-        self.Duration = Duration
-        self.File = File
+    def __init__(self, artist=None, title=None, album=None, name=None, duration=None, file=None):
+        self.artist = artist
+        self.title = title
+        self.album = album
+        self.name = name
+        self.duration = duration
+        self.filename = file
 
-        self.Inverted = False
+        self.inverted = False
 
     def define_artist(self, Artist):
-        self.Artist = Artist
-        if self.Inverted:
-            self.Title = self.Name.split(' - ' + Artist)[0]
+        self.artist = Artist
+        if self.inverted:
+            self.title = self.name.split(' - ' + Artist)[0]
         else:
-            self.Title = self.Name.split(Artist + ' - ')[1]
+            self.title = self.name.split(Artist + ' - ')[1]
 
     def name_parse(self, invert=False):
         if invert:
-            self.Inverted = True
-        invert = self.Inverted
+            self.inverted = True
+        invert = self.inverted
 
         results = list()
-        splitted = self.Name.split(' - ')
+        splitted = self.name.split(' - ')
         if len(splitted) == 2:
             if not invert:
-                self.Artist = splitted[0]
-                self.Title = splitted[1]
+                self.artist = splitted[0]
+                self.title = splitted[1]
             else:
-                self.Artist = splitted[1]
-                self.Title = splitted[0]
+                self.artist = splitted[1]
+                self.title = splitted[0]
             return True
         elif len(splitted) < 2:
             return False
@@ -80,21 +80,21 @@ class Track(object):
             return results
 
     def must_invert(self, artist):
-        if self.Name.lower().rfind(artist.lower()) > 0:
-            self.Inverted = True
+        if self.name.lower().rfind(artist.lower()) > 0:
+            self.inverted = True
         else:
-            self.Inverted = False
-        return self.Inverted
+            self.inverted = False
+        return self.inverted
 
 
 class Playlist(object):
     def __init__(self, tracks=None, encoding=None):
-        self.Tracks = tracks
+        self.tracks = tracks
         self.Inverted = False
         self.Encoding = encoding
 
     def name_parse(self, invert=False):
-        for track in self.Tracks:
+        for track in self.tracks:
             track.name_parse(invert)
 
     def must_invert(self, artist=None):
@@ -102,12 +102,12 @@ class Playlist(object):
             self.randTracks = list()
             for i in range(0, 3, 1):
                 self.randTracks.append(
-                    self.Tracks[randrange(0, len(self.Tracks) - 1)])
+                    self.tracks[randrange(0, len(self.tracks) - 1)])
             return self.randTracks
         else:
             for track in self.randTracks:
                 if track.must_invert(artist):
-                    for track in self.Tracks:
+                    for track in self.tracks:
                         track.Inverted = True
                     self.Inverted = True
                     return True
@@ -192,16 +192,16 @@ def parse(filename=None, file_data=None, track_object=Track, playlist_object=Pla
             encoding = decoded['encoding']
 
     if '.m3u' in filename or '.m3u8' in filename:
-        import m3uparser
+        from . import m3uparser
         return m3uparser.parse(file, encoding, track_object, playlist_object)
     if '.pls' in filename:
-        import plsparser
+        from . import plsparser
         return plsparser.parse(file, encoding, track_object, playlist_object)
     if '.xspf' in filename:
-        import xspfparser
+        from . import xspfparser
         return xspfparser.parse(file, track_object, playlist_object)
     if '.xml' in filename:
-        import xmlparser
+        from . import xmlparser
         return xmlparser.parse(file, track_object, playlist_object)
 
 

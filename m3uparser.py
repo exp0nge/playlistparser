@@ -41,8 +41,8 @@ def parse(file, encoding, trackObject, playlistObject):
             info = info.split(',')
             length = int(info[0])
             name = info[1]
-            playlist.append(parse_track(Name=name, Duration=length, File=fileref))
+            playlist.append(parse_track(name=name, duration=length, file=fileref))
             info = None
             fileref = None
 
-    return parse_playlist(Tracks=playlist, Encoding=encoding)
+    return parse_playlist(tracks=playlist, encoding=encoding)
